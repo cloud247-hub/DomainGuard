@@ -392,7 +392,7 @@ function renderReport(report) {
   const {checks}=report;
   const score=scoreReport(checks);
   $('resultDomain').textContent=report.domain;
-  $('scanTime').textContent=`Kontrollert ${new Date(report.scannedAt).toLocaleString('nb-NO')}`;
+  $('scanTime').textContent=`Kontrollert ${new Date(report.scannedAt).toLocaleString(window.CLOUD247_LANGUAGE === 'en' ? 'en-GB' : 'nb-NO')}`;
   $('scoreNumber').textContent=score;
   $('scoreLabel').textContent=scoreLabel(score);
   $('scoreRing').style.setProperty('--score',`${score*3.6}deg`);
@@ -445,7 +445,7 @@ $('exportJson').addEventListener('click',()=>{
   const blob=new Blob([JSON.stringify(state.report,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`${state.report.domain}-domainguard-rapport.json`;
+  a.download=`${state.report.domain}-domainguard-${window.CLOUD247_LANGUAGE === 'en' ? 'report' : 'rapport'}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 });
