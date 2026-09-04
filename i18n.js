@@ -152,6 +152,11 @@ window.CLOUD247_I18N_CONFIG = {
     "Det ble ikke funnet MX-poster. Domenet er kanskje ikke konfigurert for å motta e-post.": "No MX records were found. The domain may not be configured to receive email.",
     "Domenet publiserer en null MX-post og oppgir dermed at det ikke skal motta e-post.": "The domain publishes a null MX record, indicating that it does not accept email.",
     "MX-poster er publisert og angir hvilke servere som mottar e-post for domenet.": "MX records are published and indicate which servers receive email for the domain.",
+    "1 MX-post – gyldig oppsett": "1 MX record – valid configuration",
+    "Én gyldig MX-post er en normal og korrekt konfigurasjon. Flere MX-poster er bare nødvendig når e-postleverandøren bruker flere mottaksservere, for eksempel for redundans.": "A single valid MX record is a normal and correct configuration. Multiple MX records are only needed when the mail provider uses multiple receiving servers, for example for redundancy.",
+    "MX-posten kunne ikke tolkes": "The MX record could not be parsed",
+    "En MX-post ble returnert, men den inneholder ikke et gyldig servernavn.": "An MX record was returned, but it does not contain a valid server hostname.",
+    "MX-postene er gyldige og angir hvilke servere som mottar e-post for domenet. Antall MX-poster styres av e-postleverandørens arkitektur og er ikke i seg selv et kvalitetskrav.": "The MX records are valid and indicate which servers receive email for the domain. The number of MX records is determined by the mail provider's architecture and is not a quality requirement by itself.",
     "Ingen SPF-policy": "No SPF policy",
     "Publiser én SPF TXT-post som beskriver hvilke systemer som har lov til å sende e-post på vegne av domenet.": "Publish one SPF TXT record describing which systems are allowed to send email on behalf of the domain.",
     "SPF skal normalt publiseres som én samlet v=spf1-post. Flere SPF-poster kan føre til PermError.": "SPF should normally be published as one combined v=spf1 record. Multiple SPF records can cause PermError.",
@@ -310,6 +315,11 @@ window.CLOUD247_I18N_CONFIG = {
     "Provider: Domeneshop": "Provider: Domeneshop",
     "Deteksjon: MX + autoritative NS": "Detection: MX + authoritative NS",
     "DKIM: automatisk administrert av Domeneshop": "DKIM: automatically managed by Domeneshop",
+    "one.com håndterer DNS og e-post": "one.com manages DNS and email",
+    "MX peker til one.com sine e-postservere og autoritative navneservere er one.com sine ns01/ns02.one.com. one.com oppgir at DKIM aktiveres automatisk når både deres navneservere og e-postservere brukes. Statusen er derfor bekreftet via leverandøroppsett selv om de leverandørstyrte DKIM-selectorene ikke ble oppdaget automatisk.": "MX points to one.com's mail servers and the authoritative name servers are one.com's ns01/ns02.one.com. one.com states that DKIM is enabled automatically when both its name servers and mail servers are used. The status is therefore confirmed from the provider setup even if the provider-managed DKIM selectors were not discovered automatically.",
+    "Provider: one.com": "Provider: one.com",
+    "DKIM: automatisk administrert av one.com": "DKIM: automatically managed by one.com",
+    "one.com ble identifisert som e-postleverandør, men domenet bruker ikke et komplett one.com-navneserveroppsett. one.com bruker domenespesifikke DKIM CNAME-poster når eksterne navneservere brukes, og disse selectorene kan ikke oppdages eller gjettes sikkert fra domenenavnet alene. Kontroller de konkrete DKIM-postene one.com har oppgitt for domenet.": "one.com was identified as the email provider, but the domain is not using a complete one.com name-server setup. one.com uses domain-specific DKIM CNAME records when external name servers are used, and these selectors cannot be safely discovered or guessed from the domain name alone. Verify the specific DKIM records one.com supplied for the domain.",
     "Ingen gyldig DKIM-nøkkel ble funnet med selectorene som ble testet. Amazon SES kan bruke unike Easy DKIM-selector-tokens som ikke kan gjettes fra domenenavnet alene.": "No valid DKIM key was found using the selectors tested. Amazon SES may use unique Easy DKIM selector tokens that cannot be guessed from the domain name alone.",
     "Ingen gyldig DKIM-nøkkel ble funnet med kjente eller leverandørspesifikke selectorer. DKIM-selectorer er ikke standardiserte, så dette beviser ikke at domenet mangler DKIM.": "No valid DKIM key was found using known or provider-specific selectors. DKIM selectors are not standardized, so this does not prove that the domain lacks DKIM.",
     "Kunne ikke bekreftes": "Could not be verified",
@@ -502,6 +512,10 @@ window.CLOUD247_I18N_CONFIG = {
     [
       "^(\\d+) MX-server(?:e)? funnet$",
       "$1 MX server(s) found"
+    ],
+    [
+      "^(\\d+) MX-poster – gyldig oppsett$",
+      "$1 MX records – valid configuration"
     ],
     [
       "^(\\d+) navneservere$",

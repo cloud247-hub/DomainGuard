@@ -102,6 +102,27 @@ function detectProviders(mxResult, nsResult, rootTxtResult) {
     dsSpf?'SPF: _spf.domeneshop.no':''
   ].filter(Boolean),[],{autoDkim:Boolean(dsMxManaged && dsNsManaged),confidence:dsMxManaged&&dsNsManaged?'high':'medium'});
 
+  const isOneMx=h=>
+    h==='mx.one.com' ||
+    h.endsWith('.mx.one.com') ||
+    h.endsWith('.mx.service.one') ||
+    /^mx\d+\.pub\.mailpod[0-9a-z-]*\.one\.com$/.test(h);
+  const isOneNs=h=>/^(?:ns0?[12]|ns[12])\.one\.com$/.test(h);
+  const oneMx=mx.some(isOneMx);
+  const oneNs=ns.some(isOneNs);
+  const oneMxManaged=mx.length>0 && mx.every(isOneMx);
+  const oneNsManaged=ns.length>=2 && ns.every(isOneNs);
+  const oneSpf=rootTxt.includes('_custspf.one.com');
+  add('onecom','one.com',[
+    oneMx?'MX: one.com':'',
+    oneNs?'NS: ns01/ns02.one.com':'',
+    oneSpf?'SPF: _custspf.one.com':''
+  ].filter(Boolean),[],{
+    autoDkim:Boolean(oneMxManaged && oneNsManaged),
+    confidence:oneMxManaged&&oneNsManaged?'high':'medium',
+    opaqueSelectors:true
+  });
+
   const m365Mx=mx.some(h=>h.endsWith('.mail.protection.outlook.com'));
   const m365Spf=rootTxt.includes('spf.protection.outlook.com');
   add('microsoft365','Microsoft 365',[m365Mx?'MX: mail.protection.outlook.com':'',m365Spf?'SPF: spf.protection.outlook.com':''].filter(Boolean),['selector1','selector2']);
@@ -199,9 +220,43 @@ function evaluateMx(r) {
     const m = String(x.data).match(/^(\d+)\s+(.+)$/);
     return { priority:m?Number(m[1]):0, host:(m?m[2]:x.data).replace(/\.$/,'') };
   }).sort((a,b)=>a.priority-b.priority);
-  if (!rows.length) return { ...status('bad','Mangler','Ingen MX-poster','Det ble ikke funnet MX-poster. Domenet er kanskje ikke konfigurert for å motta e-post.'), parsed:[] };
-  if (rows.length === 1 && rows[0].host === '') return { ...status('info','Null MX','Domenet mottar ikke e-post','Domenet publiserer en null MX-post og oppgir dermed at det ikke skal motta e-post.'), parsed:rows };
-  return { ...status('good','Konfigurert',`${rows.length} e-postserver${rows.length===1?'':'e'}`,'MX-poster er publisert og angir hvilke servere som mottar e-post for domenet.', rows.map(x=>`${x.priority} ${x.host}`)), parsed:rows };
+
+  if (!rows.length) {
+    return { ...status('bad','Mangler','Ingen MX-poster','Det ble ikke funnet MX-poster. Domenet er kanskje ikke konfigurert for å motta e-post.'), parsed:[] };
+  }
+
+  if (rows.length === 1 && rows[0].host === '') {
+    return { ...status('info','Null MX','Domenet mottar ikke e-post','Domenet publiserer en null MX-post og oppgir dermed at det ikke skal motta e-post.'), parsed:rows };
+  }
+
+  const validRows = rows.filter(x => x.host);
+  if (!validRows.length) {
+    return { ...status('bad','Ugyldig','MX-posten kunne ikke tolkes','En MX-post ble returnert, men den inneholder ikke et gyldig servernavn.', rows.map(x=>`${x.priority} ${x.host}`)), parsed:rows };
+  }
+
+  if (validRows.length === 1) {
+    return {
+      ...status(
+        'good',
+        'Konfigurert',
+        '1 MX-post – gyldig oppsett',
+        'Én gyldig MX-post er en normal og korrekt konfigurasjon. Flere MX-poster er bare nødvendig når e-postleverandøren bruker flere mottaksservere, for eksempel for redundans.',
+        validRows.map(x=>`${x.priority} ${x.host}`)
+      ),
+      parsed:rows
+    };
+  }
+
+  return {
+    ...status(
+      'good',
+      'Konfigurert',
+      `${validRows.length} MX-poster – gyldig oppsett`,
+      'MX-postene er gyldige og angir hvilke servere som mottar e-post for domenet. Antall MX-poster styres av e-postleverandørens arkitektur og er ikke i seg selv et kvalitetskrav.',
+      validRows.map(x=>`${x.priority} ${x.host}`)
+    ),
+    parsed:rows
+  };
 }
 
 function evaluateSpf(r) {
@@ -269,10 +324,25 @@ function evaluateDkim(lookups, providers) {
     };
   }
 
+  const onecom=(providers||[]).find(p=>p.id==='onecom');
+  if (onecom?.autoDkim) {
+    return {
+      ...status('good','Automatisk aktivert','one.com håndterer DNS og e-post','MX peker til one.com sine e-postservere og autoritative navneservere er one.com sine ns01/ns02.one.com. one.com oppgir at DKIM aktiveres automatisk når både deres navneservere og e-postservere brukes. Statusen er derfor bekreftet via leverandøroppsett selv om de leverandørstyrte DKIM-selectorene ikke ble oppdaget automatisk.',[
+        'Provider: one.com',
+        'Deteksjon: MX + autoritative NS',
+        'DKIM: automatisk administrert av one.com'
+      ]),
+      found:[], broken:[], verificationMethod:'provider-assurance', providers:['one.com']
+    };
+  }
+
   const ses=(providers||[]).some(p=>p.id==='amazonses');
-  const detail=ses
-    ? `Ingen gyldig DKIM-nøkkel ble funnet med selectorene som ble testet. Amazon SES kan bruke unike Easy DKIM-selector-tokens som ikke kan gjettes fra domenenavnet alene.${providerText}`
-    : `Ingen gyldig DKIM-nøkkel ble funnet med kjente eller leverandørspesifikke selectorer. DKIM-selectorer er ikke standardiserte, så dette beviser ikke at domenet mangler DKIM.${providerText}`;
+  const onecomExternal=(providers||[]).some(p=>p.id==='onecom' && !p.autoDkim);
+  const detail=onecomExternal
+    ? `one.com ble identifisert som e-postleverandør, men domenet bruker ikke et komplett one.com-navneserveroppsett. one.com bruker domenespesifikke DKIM CNAME-poster når eksterne navneservere brukes, og disse selectorene kan ikke oppdages eller gjettes sikkert fra domenenavnet alene. Kontroller de konkrete DKIM-postene one.com har oppgitt for domenet.${providerText}`
+    : ses
+      ? `Ingen gyldig DKIM-nøkkel ble funnet med selectorene som ble testet. Amazon SES kan bruke unike Easy DKIM-selector-tokens som ikke kan gjettes fra domenenavnet alene.${providerText}`
+      : `Ingen gyldig DKIM-nøkkel ble funnet med kjente eller leverandørspesifikke selectorer. DKIM-selectorer er ikke standardiserte, så dette beviser ikke at domenet mangler DKIM.${providerText}`;
   const errorNote=lookupErrors.length ? ` ${lookupErrors.length} selector-oppslag fikk i tillegg en DNS-/nettverksfeil.` : '';
   return {
     ...status('warn','Kunne ikke bekreftes','Ingen kjent DKIM-selector ble verifisert',detail+errorNote),
@@ -318,8 +388,8 @@ async function runScan(domain, customSelector, scanCommon) {
   let selectors=[];
   if (customSelector) selectors.push(...customSelector.split(',').map(s=>s.trim()).filter(Boolean));
   selectors.push(...providerSelectorList(providers));
-  const providerAssuredDkim=providers.some(p=>p.id==='domeneshop' && p.autoDkim);
-  if (scanCommon && (!providerAssuredDkim || customSelector)) selectors.push(...commonSelectors);
+  const providerAssuredDkim=providers.some(p=>p.autoDkim);
+  if (scanCommon && !providerAssuredDkim) selectors.push(...commonSelectors);
   selectors=unique(selectors.map(s=>s.replace(/\._domainkey.*$/,'').toLowerCase()).filter(s=>/^[a-z0-9_-]{1,63}$/i.test(s))).slice(0,48);
 
   $('loadingText').textContent = selectors.length
