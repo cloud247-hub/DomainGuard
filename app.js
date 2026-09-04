@@ -106,7 +106,7 @@ function detectProviders(mxResult, nsResult, rootTxtResult) {
     h==='mx.one.com' ||
     h.endsWith('.mx.one.com') ||
     h.endsWith('.mx.service.one') ||
-    /^mx\d+\.pub\.mailpod[0-9a-z-]*\.one\.com$/.test(h);
+    /^mx\d+\.(?:pub\.)?mailpod[0-9a-z-]+(?:\.[0-9a-z-]+)*\.one\.com$/.test(h);
   const isOneNs=h=>/^(?:ns0?[12]|ns[12])\.one\.com$/.test(h);
   const oneMx=mx.some(isOneMx);
   const oneNs=ns.some(isOneNs);
