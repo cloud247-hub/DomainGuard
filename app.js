@@ -4,7 +4,8 @@ const commonSelectors = [
   'selector1','selector2','google','default','dkim','mail','smtp','email',
   's1','s2','k1','k2','k3','key1','key2','dkim1','dkim2','m1','m2',
   'mandrill','mailjet','smtpapi','protonmail','protonmail2','protonmail3',
-  'zoho','zmail','dk','dkim01','dkim02','mx','news','newsletter','send','postmark'
+  'zoho','zmail','dk','dkim01','dkim02','mx','news','newsletter','send','postmark',
+  'cf2024-1','cf-bounce'
 ];
 const DKIM_SCAN_CONCURRENCY = 8;
 const state = { report: null };
@@ -121,6 +122,23 @@ function detectProviders(mxResult, nsResult, rootTxtResult) {
     autoDkim:Boolean(oneMxManaged && oneNsManaged),
     confidence:oneMxManaged&&oneNsManaged?'high':'medium',
     opaqueSelectors:true
+  });
+
+  const isCloudflareMx=h=>
+    h==='route1.mx.cloudflare.net' ||
+    h==='route2.mx.cloudflare.net' ||
+    h==='route3.mx.cloudflare.net' ||
+    /^route\d+\.mx\.cloudflare\.net$/.test(h);
+  const isCloudflareNs=h=>h.endsWith('.ns.cloudflare.com');
+  const cloudflareMx=mx.some(isCloudflareMx);
+  const cloudflareNs=ns.some(isCloudflareNs);
+  const cloudflareSpf=rootTxt.includes('_spf.mx.cloudflare.net');
+  add('cloudflare','Cloudflare Email Service',[
+    cloudflareMx?'MX: route*.mx.cloudflare.net':'',
+    cloudflareSpf?'SPF: _spf.mx.cloudflare.net':'',
+    cloudflareNs?'NS: *.ns.cloudflare.com':''
+  ].filter(Boolean),['cf2024-1','cf-bounce'],{
+    confidence:cloudflareMx&&cloudflareSpf?'high':'medium'
   });
 
   const m365Mx=mx.some(h=>h.endsWith('.mail.protection.outlook.com'));
