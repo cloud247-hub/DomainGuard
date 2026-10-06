@@ -89,6 +89,19 @@ window.CLOUD247_I18N_CONFIG = {
     "For MSP-er": "For MSPs",
     "Vi har egen løsning for MSP-er som vil overvåke DMARC for alle kundedomenene sine samlet.": "We have a dedicated solution for MSPs who want to monitor DMARC for all their customer domains in one place.",
     "Kom i gang med DMARC": "Get started with DMARC",
+    "Domenet mangler DMARC": "Domain is missing DMARC",
+    "Vi hjelper deg å sette opp DMARC, samler og tolker rapportene, og viser hvilke tjenester som sender på vegne av domenet – slik at du trygt kan gå over til håndheving.": "We help you set up DMARC, collect and interpret the reports, and show which services send on behalf of your domain – so you can move safely to enforcement.",
+    "DMARC står på p=none": "DMARC is set to p=none",
+    "Med p=none får du rapporter, men falske e-poster slippes fortsatt gjennom. Vi tolker rapportene for deg og hjelper deg trygt videre til quarantine og reject.": "With p=none you get reports, but spoofed emails still get through. We interpret the reports for you and help you move safely on to quarantine and reject.",
+    "Få hjelp til håndheving": "Get help with enforcement",
+    "DMARC står på p=quarantine": "DMARC is set to p=quarantine",
+    "Ta det siste steget til p=reject": "Take the final step to p=reject",
+    "Domenet er nesten i mål. Vi viser hvilke avsendere som fortsatt feiler DMARC, så du kan gå over til reject uten å stoppe legitim e-post.": "Your domain is almost there. We show which senders still fail DMARC, so you can move to reject without blocking legitimate email.",
+    "Få hjelp til p=reject": "Get help with p=reject",
+    "DMARC står på p=reject": "DMARC is set to p=reject",
+    "Behold kontrollen på DMARC over tid": "Stay in control of DMARC over time",
+    "Domenet har sterk DMARC-håndheving. Med løpende overvåking oppdager du nye avsendere og feilkonfigurasjoner før de stopper legitim e-post.": "Your domain has strong DMARC enforcement. With ongoing monitoring you catch new senders and misconfigurations before they block legitimate email.",
+    "Overvåk DMARC": "Monitor DMARC",
     "Én sjekk, flere sikkerhetslag": "One check, multiple security layers",
     "DNS-integritet": "DNS integrity",
     "E-postruting": "Mail routing",
@@ -487,6 +500,14 @@ window.CLOUD247_I18N_CONFIG = {
     "<SPF-VERDI-FRA-E-POSTLEVERANDØR>": "<SPF-VALUE-FROM-EMAIL-PROVIDER>"
   },
   "patterns": [
+    [
+      "^Uten DMARC kan andre utgi seg for å være (.+)$",
+      "Without DMARC, others can impersonate $1"
+    ],
+    [
+      "^(.+) overvåker, men stopper ikke forfalsket e-post$",
+      "$1 is monitoring, but not stopping spoofed email"
+    ],
     [
       "^Sjekker (\\d+) DKIM-selector(?:er)? \\(TXT \\+ CNAME\\)$",
       "Checking $1 DKIM selector(s) (TXT + CNAME)"

@@ -681,6 +681,62 @@ function renderOverview(report) {
   $('mxList').innerHTML=mx.length ? mx.map(x=>`<div class="mini-item"><strong>${escapeHtml(x.host||'(null MX)')}</strong><span>Prioritet ${x.priority}</span></div>`).join('') : '<div class="empty-mini">Ingen MX-servere ble returnert.</div>';
 }
 
+const DMARC_CTA_URL='https://dmarc.cloud247.no/';
+const dmarcCtaVariants={
+  missing:{
+    kicker:'Domenet mangler DMARC',
+    title:d=>`Uten DMARC kan andre utgi seg for å være ${d}`,
+    text:'Vi hjelper deg å sette opp DMARC, samler og tolker rapportene, og viser hvilke tjenester som sender på vegne av domenet – slik at du trygt kan gå over til håndheving.',
+    label:'Kom i gang med DMARC'
+  },
+  none:{
+    kicker:'DMARC står på p=none',
+    title:d=>`${d} overvåker, men stopper ikke forfalsket e-post`,
+    text:'Med p=none får du rapporter, men falske e-poster slippes fortsatt gjennom. Vi tolker rapportene for deg og hjelper deg trygt videre til quarantine og reject.',
+    label:'Få hjelp til håndheving'
+  },
+  quarantine:{
+    kicker:'DMARC står på p=quarantine',
+    title:()=>'Ta det siste steget til p=reject',
+    text:'Domenet er nesten i mål. Vi viser hvilke avsendere som fortsatt feiler DMARC, så du kan gå over til reject uten å stoppe legitim e-post.',
+    label:'Få hjelp til p=reject'
+  },
+  reject:{
+    kicker:'DMARC står på p=reject',
+    title:()=>'Behold kontrollen på DMARC over tid',
+    text:'Domenet har sterk DMARC-håndheving. Med løpende overvåking oppdager du nye avsendere og feilkonfigurasjoner før de stopper legitim e-post.',
+    label:'Overvåk DMARC'
+  },
+  other:{
+    kicker:'DMARC-overvåking fra Cloud247',
+    title:()=>'Få kontroll på hvem som sender e-post fra domenet ditt',
+    text:'Vi samler og tolker DMARC-rapportene for deg, viser hvilke tjenester som sender på vegne av domenet, og hjelper deg trygt over til håndhevet DMARC.',
+    label:'Kom i gang med DMARC'
+  }
+};
+
+function dmarcCtaState(check) {
+  const rec=check?.records?.[0];
+  if (!rec) return 'missing';
+  const p=(parseTagRecord(rec).p||'').toLowerCase();
+  return dmarcCtaVariants[p] ? p : 'other';
+}
+
+function renderDmarcCta(report) {
+  const state=dmarcCtaState(report.checks.dmarc);
+  const v=dmarcCtaVariants[state];
+  $('dmarcCtaKicker').textContent=v.kicker;
+  $('dmarcCtaTitle').textContent=v.title(report.domain);
+  $('dmarcCtaText').textContent=v.text;
+  $('dmarcCtaLabel').textContent=v.label;
+  const url=new URL(DMARC_CTA_URL);
+  url.searchParams.set('utm_source','domainguard');
+  url.searchParams.set('utm_medium','cta');
+  url.searchParams.set('utm_campaign','dmarc_banner');
+  url.searchParams.set('utm_content',state);
+  $('dmarcCta').href=url.toString();
+}
+
 function renderReport(report) {
   state.report=report;
   const {checks}=report;
@@ -694,6 +750,7 @@ function renderReport(report) {
   renderFindings(checks);
   renderChecks(checks,report.domain);
   renderOverview(report);
+  renderDmarcCta(report);
   $('results').classList.remove('hidden');
   setTimeout(()=>$('results').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
