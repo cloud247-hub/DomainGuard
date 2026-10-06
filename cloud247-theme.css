@@ -82,6 +82,8 @@ body{background:var(--cloud-page)!important;color:var(--cloud-ink)!important;lin
 .ghost-button{border-radius:10px;color:var(--cloud-navy)!important;font-weight:800}
 .secondary-button{border-color:var(--cloud-navy)!important;background:var(--cloud-navy)!important;color:#fff!important;border-radius:10px;font-weight:800}
 .export-icon{background:var(--cloud-yellow-soft)!important;color:#6b5200!important}
+.dmarc-cta-card{border-color:var(--cloud-yellow-2)!important}
+.dmarc-cta-button{grid-column:1/-1;min-height:42px;padding:0 14px;border-radius:10px;font-size:12px;justify-content:space-between;gap:12px;white-space:normal}
 .features{max-width:1160px;margin:0 auto 72px;padding-top:0}
 .features-title .eyebrow{color:#8b6c00!important}
 .feature-grid article{border-color:var(--cloud-line)!important;border-radius:18px!important;box-shadow:none}
